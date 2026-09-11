@@ -1,48 +1,65 @@
 import datetime
 
 class Sistema:
+    LIMITES_EMPRESTIMO = {"comum": 3, "premium": 5, "funcionario": 10}
+    PRAZOS_DEVOLUCAO = {"comum": 7, "premium": 14, "funcionario": 30}
+    MULTAS_ATRASO = {"comum": 2, "premium": 1, "funcionario": 0}
+    
     def __init__(self):
-        self.d = {}
-        self.u = {}
-        self.emp = []
+        self.livros = {}
+        self.usuarios = {}
+        self.emprestimos = []
 
-    def add_livro(self, id, t, a, cat, qtd):
-        self.d[id] = {"titulo": t, "autor": a, "categoria": cat, "qtd": qtd, "qtd_total": qtd}
+    def add_livro(self, id_livro, titulo, autor, categoria, quantidade):
+        self.livros[id_livro] = {
+            "titulo": titulo, 
+            "autor": autor, 
+            "categoria": categoria, 
+            "qtd": quantidade, 
+            "qtd_total": quantidade
+            }
 
-    def add_usuario(self, id, nome, cpf, email, tipo):
-        self.u[id] = {"nome": nome, "cpf": cpf, "email": email, "tipo": tipo, "emprestimos_ativos": 0, "bloqueado": False}
+    def add_usuario(self, id_usuario, nome, cpf, email, tipo):
+        self.usuarios[id_usuario] = {
+            "nome": nome, 
+            "cpf": cpf, 
+            "email": email, 
+            "tipo": tipo, 
+            "emprestimos_ativos": 0, 
+            "bloqueado": False
+            }
 
-    def emprestar(self, id_u, id_l):
-        print("Processando emprestimo: usuario " + id_u + " CPF " + self.u[id_u]["cpf"] + " livro " + id_l)
-        if id_u in self.u:
-            if id_l in self.d:
-                if self.u[id_u]["bloqueado"] == False:
-                    if self.d[id_l]["qtd"] > 0:
+    def emprestar(self, id_usuario, id_livro):
+        print("Processando emprestimo: usuario " + id_usuario + " CPF " + self.usuarios[id_usuario]["cpf"] + " livro " + id_livro)
+        if id_usuario in self.usuarios:
+            if id_livro in self.livros:
+                if self.usuarios[id_usuario]["bloqueado"] == False:
+                    if self.livros[id_livro]["qtd"] > 0:
                         # limite de emprestimos por tipo de usuario
-                        if self.u[id_u]["tipo"] == "comum":
+                        if self.usuarios[id_usuario]["tipo"] == "comum":
                             lim = 3
-                        elif self.u[id_u]["tipo"] == "premium":
+                        elif self.usuarios[id_usuario]["tipo"] == "premium":
                             lim = 5
-                        elif self.u[id_u]["tipo"] == "funcionario":
+                        elif self.usuarios[id_usuario]["tipo"] == "funcionario":
                             lim = 10
                         else:
                             lim = 1
-                        if self.u[id_u]["emprestimos_ativos"] < lim:
+                        if self.usuarios[id_usuario]["emprestimos_ativos"] < lim:
                             # prazo por tipo
-                            if self.u[id_u]["tipo"] == "comum":
+                            if self.usuarios[id_usuario]["tipo"] == "comum":
                                 prazo = 7
-                            elif self.u[id_u]["tipo"] == "premium":
+                            elif self.usuarios[id_usuario]["tipo"] == "premium":
                                 prazo = 14
-                            elif self.u[id_u]["tipo"] == "funcionario":
+                            elif self.usuarios[id_usuario]["tipo"] == "funcionario":
                                 prazo = 30
                             else:
                                 prazo = 3
                             try:
-                                self.d[id_l]["qtd"] = self.d[id_l]["qtd"] - 1
-                                self.u[id_u]["emprestimos_ativos"] = self.u[id_u]["emprestimos_ativos"] + 1
+                                self.livros[id_livro]["qtd"] = self.livros[id_livro]["qtd"] - 1
+                                self.usuarios[id_usuario]["emprestimos_ativos"] = self.usuarios[id_usuario]["emprestimos_ativos"] + 1
                                 venc = datetime.date.today() + datetime.timedelta(days=prazo)
-                                self.emp.append({"usuario": id_u, "livro": id_l, "vencimento": venc, "devolvido": False})
-                                print("Emprestimo OK para " + self.u[id_u]["nome"] + " email " + self.u[id_u]["email"] + " vence em " + str(venc))
+                                self.emp.append({"usuario": id_usuario, "livro": id_livro, "vencimento": venc, "devolvido": False})
+                                print("Emprestimo OK para " + self.usuarios[id_usuario]["nome"] + " email " + self.usuarios[id_usuario]["email"] + " vence em " + str(venc))
                                 return True
                             except:
                                 pass
@@ -62,22 +79,22 @@ class Sistema:
             print("Usuario nao encontrado")
             return False
 
-    def devolver(self, id_u, id_l):
-        print("Processando devolucao: usuario " + id_u + " CPF " + self.u[id_u]["cpf"] + " | " + "livro " + id_l)
-        for e in self.emp:
-            if e["usuario"] == id_u and e["livro"] == id_l and e["devolvido"] == False:
-                e["devolvido"] = True
-                self.d[id_l]["qtd"] = self.d[id_l]["qtd"] + 1
-                self.u[id_u]["emprestimos_ativos"] = self.u[id_u]["emprestimos_ativos"] - 1
+    def devolver(self, id_usuario, id_livro):
+        print("Processando devolucao: usuario " + id_usuario + " CPF " + self.usuarios[id_usuario]["cpf"] + " | " + "livro " + id_livro)
+        for emprestimo in self.emprestimos:
+            if emprestimo["usuario"] == id_usuario and emprestimo["livro"] == id_livro and emprestimo["devolvido"] == False:
+                emprestimo["devolvido"] = True
+                self.d[id_livro]["qtd"] = self.d[id_livro]["qtd"] + 1
+                self.usuarios[id_usuario]["emprestimos_ativos"] = self.usuarios[id_usuario]["emprestimos_ativos"] - 1
                 # calculo de multa
                 hoje = datetime.date.today()
-                if hoje > e["vencimento"]:
-                    dias = (hoje - e["vencimento"]).days
-                    if self.u[id_u]["tipo"] == "comum":
+                if hoje > emprestimo["vencimento"]:
+                    dias = (hoje - emprestimo["vencimento"]).days
+                    if self.usuarios[id_usuario]["tipo"] == "comum":
                         multa = dias * 2
-                    elif self.u[id_u]["tipo"] == "premium":
+                    elif self.usuarios[id_usuario]["tipo"] == "premium":
                         multa = dias * 1
-                    elif self.u[id_u]["tipo"] == "funcionario":
+                    elif self.usuarios[id_usuario]["tipo"] == "funcionario":
                         multa = 0
                     else:
                         multa = dias * 3
@@ -91,10 +108,10 @@ class Sistema:
 
     def relatorio(self):
         print("=== RELATORIO DA BIBLIOTECA ===")
-        for id in self.d:
-            print("Livro: " + self.d[id]["titulo"] + " | Disponivel: " + str(self.d[id]["qtd"]) + "/" + str(self.d[id]["qtd_total"]))
-        for id in self.u:
-            print("Usuario: " + self.u[id]["nome"] + " CPF: " + self.u[id]["cpf"] + " | Emprestimos: " + str(self.u[id]["emprestimos_ativos"]))
+        for id_livro in self.livros:
+            print("Livro: " + self.livros[id_livro]["titulo"] + " | Disponivel: " + str(self.livros[id_livro]["qtd"]) + "/" + str(self.livros[id_livro]["qtd_total"]))
+        for id_usuario in self.usuarios:
+            print("Usuario: " + self.usuarios[id_usuario]["nome"] + " CPF: " + self.usuarios[id_usuario]["cpf"] + " | Emprestimos: " + str(self.usuarios[id_usuario]["emprestimos_ativos"]))
 
 
 if __name__ == "__main__":
@@ -141,19 +158,19 @@ if __name__ == "__main__":
     import datetime as _dt
  
     # Ana (comum): multa de 2/dia. Atraso de 5 dias -> multa 10
-    for _e in s.emp:
+    for _e in s.emprestimos:
         if _e["usuario"] == "U1" and _e["livro"] == "L4":
             _e["vencimento"] = _dt.date.today() - _dt.timedelta(days=5)
     s.devolver("U1", "L4")    # esperado: multa 10
  
     # Bruno (premium): multa de 1/dia. Atraso de 10 dias -> multa 10
-    for _e in s.emp:
+    for _e in s.emprestimos:
         if _e["usuario"] == "U2" and _e["livro"] == "L2":
             _e["vencimento"] = _dt.date.today() - _dt.timedelta(days=10)
     s.devolver("U2", "L2")    # esperado: multa 10
  
     # Carla (funcionario): multa 0/dia. Mesmo com atraso -> multa 0
-    for _e in s.emp:
+    for _e in s.emprestimos:
         if _e["usuario"] == "U3" and _e["livro"] == "L3":
             _e["vencimento"] = _dt.date.today() - _dt.timedelta(days=20)
     s.devolver("U3", "L3")    # esperado: multa 0 (funcionario nao paga)
