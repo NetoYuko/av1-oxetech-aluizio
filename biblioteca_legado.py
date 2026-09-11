@@ -1,6 +1,10 @@
 import datetime
 
 class Sistema:
+    LIMITES_EMPRESTIMO = {"comum": 3, "premium": 5, "funcionario": 10}
+    PRAZOS_DEVOLUCAO = {"comum": 7, "premium": 14, "funcionario": 30}
+    MULTAS_ATRASO = {"comum": 2, "premium": 1, "funcionario": 0}
+    
     def __init__(self):
         self.d = {}
         self.u = {}
