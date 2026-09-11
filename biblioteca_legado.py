@@ -30,79 +30,77 @@ class Sistema:
             }
 
     def emprestar(self, id_usuario, id_livro):
-        print("Processando emprestimo: usuario " + id_usuario + " CPF " + self.usuarios[id_usuario]["cpf"] + " livro " + id_livro)
-        if id_usuario in self.usuarios:
-            if id_livro in self.livros:
-                if self.usuarios[id_usuario]["bloqueado"] == False:
-                    if self.livros[id_livro]["qtd"] > 0:
-                        # limite de emprestimos por tipo de usuario
-                        if self.usuarios[id_usuario]["tipo"] == "comum":
-                            lim = 3
-                        elif self.usuarios[id_usuario]["tipo"] == "premium":
-                            lim = 5
-                        elif self.usuarios[id_usuario]["tipo"] == "funcionario":
-                            lim = 10
-                        else:
-                            lim = 1
-                        if self.usuarios[id_usuario]["emprestimos_ativos"] < lim:
-                            # prazo por tipo
-                            if self.usuarios[id_usuario]["tipo"] == "comum":
-                                prazo = 7
-                            elif self.usuarios[id_usuario]["tipo"] == "premium":
-                                prazo = 14
-                            elif self.usuarios[id_usuario]["tipo"] == "funcionario":
-                                prazo = 30
-                            else:
-                                prazo = 3
-                            try:
-                                self.livros[id_livro]["qtd"] = self.livros[id_livro]["qtd"] - 1
-                                self.usuarios[id_usuario]["emprestimos_ativos"] = self.usuarios[id_usuario]["emprestimos_ativos"] + 1
-                                venc = datetime.date.today() + datetime.timedelta(days=prazo)
-                                self.emp.append({"usuario": id_usuario, "livro": id_livro, "vencimento": venc, "devolvido": False})
-                                print("Emprestimo OK para " + self.usuarios[id_usuario]["nome"] + " email " + self.usuarios[id_usuario]["email"] + " vence em " + str(venc))
-                                return True
-                            except:
-                                pass
-                        else:
-                            print("Limite de emprestimos atingido")
-                            return False
-                    else:
-                        print("Livro indisponivel")
-                        return False
-                else:
-                    print("Usuario bloqueado")
-                    return False
-            else:
-                print("Livro nao encontrado")
-                return False
-        else:
-            print("Usuario nao encontrado")
+        #Guard clauses
+        if id_usuario not in self.usuarios:
+            print("Usuario não encontrado.")
+            return False
+        if id_livro not in self.livros:
+            print("Livro não encontrado.")
+            return False
+        
+        usuario = self.usuarios[id_usuario]
+        livro = self.livros[id_livro]
+        
+        print(f"Processando emprestimo: usuario {id_usuario} CPF {usuario['cpf']} livro {id_livro}")
+
+        if usuario["bloqueado"]:
+            print("Usuario bloqueado")
+            return False
+
+        if livro["qtd"] <= 0:
+            print("Livro indisponivel")
+            return False
+
+        tipo_usuario = usuario["tipo"]
+        limite = self.LIMITES_EMPRESTIMO.get(tipo_usuario, 1)
+        
+        if usuario["emprestimos_ativos"] >= limite:
+            print("Limite de emprestimos atingido")
+            return False
+
+        prazo = self.PRAZOS_DEVOLUCAO.get(tipo_usuario, 3)
+        
+        try:
+            livro["qtd"] -= 1
+            usuario["emprestimos_ativos"] += 1
+            venc = datetime.date.today() + datetime.timedelta(days=prazo)
+            self.emprestimos.append({"usuario": id_usuario, "livro": id_livro, "vencimento": venc, "devolvido": False})
+            
+            print(f"Emprestimo OK para {usuario['nome']} email {usuario['email']} vence em {venc}")
+            return True
+            
+        except Exception as erro:
+            print(f"Erro interno ao registrar emprestimo: {erro}")
             return False
 
     def devolver(self, id_usuario, id_livro):
-        print("Processando devolucao: usuario " + id_usuario + " CPF " + self.usuarios[id_usuario]["cpf"] + " | " + "livro " + id_livro)
+        #Guard clause
+        if id_usuario not in self.usuarios:
+            print("Usuario nao encontrado")
+            return -1
+        
+        usuario = self.usuarios[id_usuario]
+        print(f"Processando devolucao: usuario {id_usuario} CPF {usuario['cpf']} | livro {id_livro}")
+        
         for emprestimo in self.emprestimos:
-            if emprestimo["usuario"] == id_usuario and emprestimo["livro"] == id_livro and emprestimo["devolvido"] == False:
+            if emprestimo["usuario"] == id_usuario and emprestimo["livro"] == id_livro and not emprestimo["devolvido"]:
                 emprestimo["devolvido"] = True
-                self.d[id_livro]["qtd"] = self.d[id_livro]["qtd"] + 1
-                self.usuarios[id_usuario]["emprestimos_ativos"] = self.usuarios[id_usuario]["emprestimos_ativos"] - 1
-                # calculo de multa
+                self.livros[id_livro]["qtd"] += 1
+                usuario["emprestimos_ativos"] -= 1
+                
                 hoje = datetime.date.today()
                 if hoje > emprestimo["vencimento"]:
-                    dias = (hoje - emprestimo["vencimento"]).days
-                    if self.usuarios[id_usuario]["tipo"] == "comum":
-                        multa = dias * 2
-                    elif self.usuarios[id_usuario]["tipo"] == "premium":
-                        multa = dias * 1
-                    elif self.usuarios[id_usuario]["tipo"] == "funcionario":
-                        multa = 0
-                    else:
-                        multa = dias * 3
-                    print("Devolucao com atraso. Multa: " + str(multa))
+                    dias_atraso = (hoje - emprestimo["vencimento"]).days
+                    tipo_usuario = usuario["tipo"]
+                    multiplicador_multa = self.MULTAS_ATRASO.get(tipo_usuario, 3)
+                    
+                    multa = dias_atraso * multiplicador_multa
+                    print(f"Devolucao com atraso. Multa: {multa}")
                     return multa
-                else:
-                    print("Devolucao OK no prazo")
-                    return 0
+                
+                print("Devolucao OK no prazo")
+                return 0
+                
         print("Emprestimo nao encontrado")
         return -1
 
