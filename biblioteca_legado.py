@@ -30,6 +30,14 @@ class Sistema:
             }
 
     def emprestar(self, id_usuario, id_livro):
+        #Guard clauses
+        if id_usuario not in self.usuarios:
+            print("Usuario não encontrado.")
+            return False
+        if id_livro not in self.livros:
+            print("Livro não encontrado.")
+            return False
+        
         print("Processando emprestimo: usuario " + id_usuario + " CPF " + self.usuarios[id_usuario]["cpf"] + " livro " + id_livro)
         if id_usuario in self.usuarios:
             if id_livro in self.livros:
@@ -80,6 +88,10 @@ class Sistema:
             return False
 
     def devolver(self, id_usuario, id_livro):
+        #Guard clause
+        if id_usuario not in self.usuarios:
+            print("Usuario nao encontrado")
+            return -1
         print("Processando devolucao: usuario " + id_usuario + " CPF " + self.usuarios[id_usuario]["cpf"] + " | " + "livro " + id_livro)
         for emprestimo in self.emprestimos:
             if emprestimo["usuario"] == id_usuario and emprestimo["livro"] == id_livro and emprestimo["devolvido"] == False:
