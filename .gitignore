@@ -16,3 +16,8 @@ env/
 # Sistema Operacional
 .DS_Store
 Thumbs.db
+
+# Testes e Cobertura
+.pytest_cache/
+.coverage
+htmlcov/
