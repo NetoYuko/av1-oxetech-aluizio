@@ -1,4 +1,11 @@
 import datetime
+import logging
+
+# Configuração base
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(levelname)s: %(message)s'
+    )
 
 class Sistema:
     LIMITES_EMPRESTIMO = {"comum": 3, "premium": 5, "funcionario": 10}
