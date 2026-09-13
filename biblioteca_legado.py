@@ -1,4 +1,11 @@
 import datetime
+import logging
+
+# Configuração base
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(levelname)s: %(message)s'
+    )
 
 class Sistema:
     LIMITES_EMPRESTIMO = {"comum": 3, "premium": 5, "funcionario": 10}
@@ -9,6 +16,18 @@ class Sistema:
         self.livros = {}
         self.usuarios = {}
         self.emprestimos = []
+
+    # Métodos para LGPD
+    def _mascarar_cpf(self, cpf):
+        if len(cpf) == 11:
+            return f"***.***.{cpf[6:9]}-{cpf[9:]}"
+        return "***.***.***-**"
+
+    def _mascarar_email(self, email):
+        if "@" in email:
+            nome, dominio = email.split("@")
+            return f"{nome[0]}***@{dominio}"
+        return "***@***"
 
     def add_livro(self, id_livro, titulo, autor, categoria, quantidade):
         self.livros[id_livro] = {
@@ -32,30 +51,31 @@ class Sistema:
     def emprestar(self, id_usuario, id_livro):
         #Guard clauses
         if id_usuario not in self.usuarios:
-            print("Usuario não encontrado.")
+            logging.warning("Usuario não encontrado.")
             return False
         if id_livro not in self.livros:
-            print("Livro não encontrado.")
+            logging.warning("Livro não encontrado.")
             return False
         
         usuario = self.usuarios[id_usuario]
         livro = self.livros[id_livro]
-        
-        print(f"Processando emprestimo: usuario {id_usuario} CPF {usuario['cpf']} livro {id_livro}")
+
+        cpf_seguro = self._mascarar_cpf(usuario['cpf'])
+        logging.info(f"Processando emprestimo: usuario {id_usuario} CPF {cpf_seguro} livro {id_livro}")
 
         if usuario["bloqueado"]:
-            print("Usuario bloqueado")
+            logging.warning("Usuario bloqueado")
             return False
 
         if livro["qtd"] <= 0:
-            print("Livro indisponivel")
+            logging.warning("Livro indisponivel")
             return False
 
         tipo_usuario = usuario["tipo"]
         limite = self.LIMITES_EMPRESTIMO.get(tipo_usuario, 1)
         
         if usuario["emprestimos_ativos"] >= limite:
-            print("Limite de emprestimos atingido")
+            logging.warning("Limite de emprestimos atingido")
             return False
 
         prazo = self.PRAZOS_DEVOLUCAO.get(tipo_usuario, 3)
@@ -65,22 +85,24 @@ class Sistema:
             usuario["emprestimos_ativos"] += 1
             venc = datetime.date.today() + datetime.timedelta(days=prazo)
             self.emprestimos.append({"usuario": id_usuario, "livro": id_livro, "vencimento": venc, "devolvido": False})
-            
-            print(f"Emprestimo OK para {usuario['nome']} email {usuario['email']} vence em {venc}")
+
+            email_seguro = self._mascarar_email(usuario['email'])
+            logging.info(f"Emprestimo OK para {usuario['nome']} email {email_seguro} vence em {venc}")
             return True
             
         except Exception as erro:
-            print(f"Erro interno ao registrar emprestimo: {erro}")
+            logging.error(f"Erro interno ao registrar emprestimo: {erro}")
             return False
 
     def devolver(self, id_usuario, id_livro):
         #Guard clause
         if id_usuario not in self.usuarios:
-            print("Usuario nao encontrado")
+            logging.warning("Usuario nao encontrado")
             return -1
         
         usuario = self.usuarios[id_usuario]
-        print(f"Processando devolucao: usuario {id_usuario} CPF {usuario['cpf']} | livro {id_livro}")
+        cpf_seguro = self._mascarar_cpf(usuario['cpf'])
+        logging.info(f"Processando devolucao: usuario {id_usuario} CPF {cpf_seguro} | livro {id_livro}")
         
         for emprestimo in self.emprestimos:
             if emprestimo["usuario"] == id_usuario and emprestimo["livro"] == id_livro and not emprestimo["devolvido"]:
@@ -95,21 +117,24 @@ class Sistema:
                     multiplicador_multa = self.MULTAS_ATRASO.get(tipo_usuario, 3)
                     
                     multa = dias_atraso * multiplicador_multa
-                    print(f"Devolucao com atraso. Multa: {multa}")
+                    logging.info(f"Devolucao com atraso. Multa: {multa}")
                     return multa
                 
-                print("Devolucao OK no prazo")
+                logging.info("Devolucao OK no prazo")
                 return 0
                 
-        print("Emprestimo nao encontrado")
+        logging.warning("Emprestimo nao encontrado")
         return -1
 
     def relatorio(self):
-        print("=== RELATORIO DA BIBLIOTECA ===")
+        logging.info("=== RELATORIO DA BIBLIOTECA ===")
         for id_livro in self.livros:
-            print("Livro: " + self.livros[id_livro]["titulo"] + " | Disponivel: " + str(self.livros[id_livro]["qtd"]) + "/" + str(self.livros[id_livro]["qtd_total"]))
+            livro = self.livros[id_livro]
+            logging.info(f"Livro: {livro['titulo']} | Disponivel: {livro['qtd']}/{livro['qtd_total']}")
         for id_usuario in self.usuarios:
-            print("Usuario: " + self.usuarios[id_usuario]["nome"] + " CPF: " + self.usuarios[id_usuario]["cpf"] + " | Emprestimos: " + str(self.usuarios[id_usuario]["emprestimos_ativos"]))
+            usuario = self.usuarios[id_usuario]
+            cpf_seguro = self._mascarar_cpf(usuario['cpf'])
+            logging.info(f"Usuario: {usuario['nome']} CPF: {cpf_seguro} | Emprestimos: {usuario['emprestimos_ativos']}")
 
 
 if __name__ == "__main__":
