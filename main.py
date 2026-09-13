@@ -17,14 +17,18 @@ if __name__ == "__main__":
     s.add_usuario("U1", "Ana", "11122233344", "ana@email.com", "comum")
     s.add_usuario("U2", "Bruno", "55566677788", "bruno@email.com", "premium")
     s.add_usuario("U3", "Carla", "99988877766", "carla@email.com", "funcionario")
+    s.add_usuario("U4", "Davyd", "12312312312", "Davyd@email.com", "professor")
  
     print("\n========== CENARIO 1: emprestimos normais ==========")
     s.emprestar("U1", "L1")   # comum pega tecnico -> prazo 7 dias
     s.emprestar("U2", "L2")   # premium pega ficcao -> prazo 14 dias
     s.emprestar("U3", "L3")   # funcionario pega tecnico -> prazo 30 dias
+    s.emprestar("U4", "L1")   # professor pegando emprestado
  
-    print("\n========== CENARIO 2: livro esgotado ==========")
+    print("\n========== CENARIO 2: livro esgotado e reserva ==========")
     s.emprestar("U1", "L2")   # deve falhar: indisponivel
+    s.reservar("U1", "L1")    # deve falhar: L1 está disponível
+    s.reservar("U1", "L2")    # Sucesso: l2 está esgotado
  
     print("\n========== CENARIO 3: limite de emprestimos (comum = 3) ==========")
     s.add_livro("L4", "Livro Extra 1", "Autor", "geral", 5)
@@ -55,3 +59,5 @@ if __name__ == "__main__":
  
     print("\n========== CENARIO 6: relatorio final ==========")
     s.relatorio()
+    print("")
+    s.relatorio_resumido()

@@ -48,6 +48,14 @@ class UsuarioFuncionario(Usuario):
     @property
     def multiplicador_multa(self): return 0
 
+class UsuarioProfessor(Usuario):
+    @property
+    def limite_emprestimos(self): return 15
+    @property
+    def prazo_devolucao(self): return 60
+    @property
+    def multiplicador_multa(self): return 0
+
 
 class UsuarioFactory:
     @staticmethod
@@ -55,7 +63,8 @@ class UsuarioFactory:
         tipos = {
             "comum": UsuarioComum,
             "premium": UsuarioPremium,
-            "funcionario": UsuarioFuncionario
+            "funcionario": UsuarioFuncionario,
+            "professor": UsuarioProfessor
         }
         classe = tipos.get(tipo)
         if not classe:

@@ -10,6 +10,7 @@ class Sistema:
         self.livros = {}
         self.usuarios = {}
         self.emprestimos = []
+        self.reservas = []
 
     def add_livro(self, id_livro, titulo, autor, categoria, quantidade):
         self.livros[id_livro] = Livro(id_livro, titulo, autor, categoria, quantidade)
@@ -86,5 +87,28 @@ class Sistema:
         logging.warning("Emprestimo nao encontrado")
         return -1
 
+    def reservar(self, id_usuario, id_livro):
+        if id_usuario not in self.usuarios:
+            logging.warning("Usuario nao encontrado para reserva")
+            return False
+            
+        if id_livro not in self.livros:
+            logging.warning("Livro nao encontrado para reserva")
+            return False
+
+        usuario = self.usuarios[id_usuario]
+        livro = self.livros[id_livro]
+
+        if livro.qtd > 0:
+            logging.warning(f"Reserva negada: O livro '{livro.titulo}' esta disponivel para emprestimo.")
+            return False
+
+        self.reservas.append({"usuario": id_usuario, "livro": id_livro, "data": datetime.date.today()})
+        logging.info(f"Reserva OK: '{usuario.nome}' reservou o livro '{livro.titulo}'")
+        return True
+
     def relatorio(self):
         GeradorRelatorio.relatorio_completo(self.livros, self.usuarios)
+
+    def relatorio_resumido(self):
+        GeradorRelatorio.relatorio_resumido(self.livros, self.usuarios)
