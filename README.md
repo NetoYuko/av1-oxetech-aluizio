@@ -38,5 +38,5 @@ pip install pytest
 ```
 Execute a suíte de testes na raiz do projeto:
 ```
-pytest test_sistema.py -v
+pytest tests/test_sistema.py -v
 ```
