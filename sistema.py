@@ -1,6 +1,7 @@
 import datetime
 import logging
 from usuario import UsuarioFactory
+from livro import Livro
 from relatorio import GeradorRelatorio
 from utils import mascarar_cpf, mascarar_email
 
@@ -11,13 +12,7 @@ class Sistema:
         self.emprestimos = []
 
     def add_livro(self, id_livro, titulo, autor, categoria, quantidade):
-        self.livros[id_livro] = {
-            "titulo": titulo, 
-            "autor": autor, 
-            "categoria": categoria, 
-            "qtd": quantidade, 
-            "qtd_total": quantidade
-        }
+        self.livros[id_livro] = Livro(id_livro, titulo, autor, categoria, quantidade)
 
     def add_usuario(self, id_usuario, nome, cpf, email, tipo):
         self.usuarios[id_usuario] = UsuarioFactory.criar(id_usuario, nome, cpf, email, tipo)
@@ -41,7 +36,7 @@ class Sistema:
             logging.warning("Usuario bloqueado")
             return False
 
-        if livro["qtd"] <= 0:
+        if livro.qtd <= 0:
             logging.warning("Livro indisponivel")
             return False
 
@@ -50,7 +45,7 @@ class Sistema:
             return False
         
         try:
-            livro["qtd"] -= 1
+            livro.qtd -= 1
             usuario.emprestimos_ativos += 1
             venc = datetime.date.today() + datetime.timedelta(days=usuario.prazo_devolucao)
             self.emprestimos.append({"usuario": id_usuario, "livro": id_livro, "vencimento": venc, "devolvido": False})
@@ -75,7 +70,7 @@ class Sistema:
         for emprestimo in self.emprestimos:
             if emprestimo["usuario"] == id_usuario and emprestimo["livro"] == id_livro and not emprestimo["devolvido"]:
                 emprestimo["devolvido"] = True
-                self.livros[id_livro]["qtd"] += 1
+                self.livros[id_livro].qtd += 1
                 usuario.emprestimos_ativos -= 1
                 
                 hoje = datetime.date.today()
