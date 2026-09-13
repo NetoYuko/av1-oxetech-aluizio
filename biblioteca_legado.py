@@ -17,6 +17,18 @@ class Sistema:
         self.usuarios = {}
         self.emprestimos = []
 
+    # Métodos para LGPD
+    def _mascarar_cpf(self, cpf):
+        if len(cpf) == 11:
+            return f"***.***.{cpf[6:9]}-{cpf[9:]}"
+        return "***.***.***-**"
+
+    def _mascarar_email(self, email):
+        if "@" in email:
+            nome, dominio = email.split("@")
+            return f"{nome[0]}***@{dominio}"
+        return "***@***"
+
     def add_livro(self, id_livro, titulo, autor, categoria, quantidade):
         self.livros[id_livro] = {
             "titulo": titulo, 
