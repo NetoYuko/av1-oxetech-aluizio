@@ -1,6 +1,6 @@
 import logging
 import datetime as _dt
-from sistema import Sistema
+from biblioteca.sistema import Sistema
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

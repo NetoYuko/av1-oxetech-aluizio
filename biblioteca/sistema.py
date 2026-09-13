@@ -1,9 +1,9 @@
 import datetime
 import logging
-from usuario import UsuarioFactory
-from livro import Livro
-from relatorio import GeradorRelatorio
-from utils import mascarar_cpf, mascarar_email
+from biblioteca.usuario import UsuarioFactory
+from biblioteca.livro import Livro
+from biblioteca.relatorio import GeradorRelatorio
+from biblioteca.utils import mascarar_cpf, mascarar_email
 
 class Sistema:
     def __init__(self):

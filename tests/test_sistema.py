@@ -1,6 +1,6 @@
 import pytest
 import datetime
-from sistema import Sistema
+from biblioteca.sistema import Sistema
 
 @pytest.fixture
 def biblioteca():

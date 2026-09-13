@@ -1,5 +1,5 @@
 import logging
-from utils import mascarar_cpf
+from biblioteca.utils import mascarar_cpf
 
 class GeradorRelatorio:
     @staticmethod
