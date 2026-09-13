@@ -59,8 +59,9 @@ class Sistema:
         
         usuario = self.usuarios[id_usuario]
         livro = self.livros[id_livro]
-        
-        logging.info(f"Processando emprestimo: usuario {id_usuario} CPF {usuario['cpf']} livro {id_livro}")
+
+        cpf_seguro = self._mascarar_cpf(usuario['cpf'])
+        logging.info(f"Processando emprestimo: usuario {id_usuario} CPF {cpf_seguro} livro {id_livro}")
 
         if usuario["bloqueado"]:
             logging.warning("Usuario bloqueado")
@@ -84,8 +85,9 @@ class Sistema:
             usuario["emprestimos_ativos"] += 1
             venc = datetime.date.today() + datetime.timedelta(days=prazo)
             self.emprestimos.append({"usuario": id_usuario, "livro": id_livro, "vencimento": venc, "devolvido": False})
-            
-            logging.info(f"Emprestimo OK para {usuario['nome']} email {usuario['email']} vence em {venc}")
+
+            email_seguro = self._mascarar_email(usuario['email'])
+            logging.info(f"Emprestimo OK para {usuario['nome']} email {email_seguro} vence em {venc}")
             return True
             
         except Exception as erro:
@@ -99,7 +101,8 @@ class Sistema:
             return -1
         
         usuario = self.usuarios[id_usuario]
-        logging.info(f"Processando devolucao: usuario {id_usuario} CPF {usuario['cpf']} | livro {id_livro}")
+        cpf_seguro = self._mascarar_cpf(usuario['cpf'])
+        logging.info(f"Processando devolucao: usuario {id_usuario} CPF {cpf_seguro} | livro {id_livro}")
         
         for emprestimo in self.emprestimos:
             if emprestimo["usuario"] == id_usuario and emprestimo["livro"] == id_livro and not emprestimo["devolvido"]:
@@ -126,9 +129,12 @@ class Sistema:
     def relatorio(self):
         logging.info("=== RELATORIO DA BIBLIOTECA ===")
         for id_livro in self.livros:
-            logging.info("Livro: " + self.livros[id_livro]["titulo"] + " | Disponivel: " + str(self.livros[id_livro]["qtd"]) + "/" + str(self.livros[id_livro]["qtd_total"]))
+            livro = self.livros[id_livro]
+            logging.info(f"Livro: {livro['titulo']} | Disponivel: {livro['qtd']}/{livro['qtd_total']}")
         for id_usuario in self.usuarios:
-            logging.info("Usuario: " + self.usuarios[id_usuario]["nome"] + " CPF: " + self.usuarios[id_usuario]["cpf"] + " | Emprestimos: " + str(self.usuarios[id_usuario]["emprestimos_ativos"]))
+            usuario = self.usuarios[id_usuario]
+            cpf_seguro = self._mascarar_cpf(usuario['cpf'])
+            logging.info(f"Usuario: {usuario['nome']} CPF: {cpf_seguro} | Emprestimos: {usuario['emprestimos_ativos']}")
 
 
 if __name__ == "__main__":
